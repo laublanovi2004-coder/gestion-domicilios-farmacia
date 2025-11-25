@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Nuevo Pedido{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">Nuevo Pedido</h4>
+            </div>
+            <div class="card-body">
+                
+                {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Cliente *</label>
+                                <select name="cliente" class="form-control" required>
+                                    <option value="">Seleccionar cliente...</option>
+                                    {% for cliente in clientes %}
+                                        <option value="{{ cliente.pk }}">{{ cliente.nombres }} {{ cliente.apellidos }} - {{ cliente.cedula }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Repartidor</label>
+                                <select name="repartidor" class="form-control">
+                                    <option value="">Sin asignar</option>
+                                    {% for repartidor in repartidores %}
+                                        <option value="{{ repartidor.pk }}">{{ repartidor.nombres }} {{ repartidor.apellidos }} - {{ repartidor.vehiculo }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Dirección de Entrega *</label>
+                        <input type="text" name="direccion_entrega" class="form-control" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Zona de Entrega *</label>
+                                <input type="text" name="zona_entrega" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Tiempo Estimado (minutos) *</label>
+                                <input type="number" name="tiempo_estimado_minutos" class="form-control" required min="1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Estado</label>
+                                <select name="estado" class="form-control">
+                                    <option value="pendiente">Pendiente</option>
+                                    <option value="asignado">Asignado</option>
+                                    <option value="en_camino">En Camino</option>
+                                    <option value="entregado">Entregado</option>
+                                    <option value="cancelado">Cancelado</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Prioridad</label>
+                                <select name="prioridad" class="form-control">
+                                    <option value="normal">Normal</option>
+                                    <option value="alta">Alta</option>
+                                    <option value="urgente">Urgente</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Observaciones</label>
+                        <textarea name="observaciones" class="form-control" rows="3"></textarea>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">Crear Pedido</button>
+                        <a href="{% url 'lista_pedidos' %}" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

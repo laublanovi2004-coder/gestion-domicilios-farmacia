@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Reasignar Repartidor - Pedido #{{ pedido.pedido_id }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">Reasignar Repartidor - Pedido #{{ pedido.pedido_id }}</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <strong>Repartidor actual:</strong>
+                    {% if pedido.repartidor %}
+                        {{ pedido.repartidor.nombres }} {{ pedido.repartidor.apellidos }}
+                        ({{ pedido.repartidor.vehiculo|default:"Sin vehículo" }})
+                        - Capacidad: {{ pedido.repartidor.capacidad_entregas }} entregas
+                    {% else %}
+                        <span class="text-danger">No asignado</span>
+                    {% endif %}
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Seleccionar Nuevo Repartidor</strong></label>
+                        <select name="repartidor_id" class="form-control" required>
+                            <option value="">Seleccionar repartidor...</option>
+                            {% for repartidor in repartidores_disponibles %}
+                            <option value="{{ repartidor.repartidor_id }}">
+                                {{ repartidor.nombres }} {{ repartidor.apellidos }} 
+                                - {{ repartidor.vehiculo|default:"Sin vehículo" }}
+                                - Zona: {{ repartidor.zona_asignada }}
+                                - Capacidad: {{ repartidor.capacidad_entregas }} entregas
+                                {% if repartidor.capacidad_entregas <= 0 %}
+                                    (Lleno)
+                                {% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">
+                            El repartidor actual será liberado y el nuevo será asignado
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-sync-alt"></i> Reasignar Repartidor
+                        </button>
+                        <a href="{% url 'lista_pedidos' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+
+                {% if not repartidores_disponibles %}
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>No hay repartidores disponibles</strong><br>
+                    Todos los repartidores están ocupados o han alcanzado su capacidad máxima.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

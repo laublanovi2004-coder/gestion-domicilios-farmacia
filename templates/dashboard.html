@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Sistema de Domicilios{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="card stat-card bg-primary text-white">
+            <div class="card-body text-center">
+                <h4 class="card-title">{{ pedidos_hoy }}</h4>
+                <p class="card-text">Pedidos Hoy</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card stat-card bg-success text-white">
+            <div class="card-body text-center">
+                <h4 class="card-title">{{ reportes_hoy }}</h4>
+                <p class="card-text">Reportes Hoy</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Pedidos por Estado</h5>
+            </div>
+            <div class="card-body">
+                {% if pedidos_por_estado %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Estado</th>
+                                <th>Cantidad</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for estado in pedidos_por_estado %}
+                            <tr>
+                                <td>
+                                    <span class="badge
+                                        {% if estado.estado == 'entregado' %}bg-success
+                                        {% elif estado.estado == 'pendiente' %}bg-warning
+                                        {% elif estado.estado == 'cancelado' %}bg-danger
+                                        {% else %}bg-info{% endif %}">
+                                        {{ estado.estado|title }}
+                                    </span>
+                                </td>
+                                <td>{{ estado.total }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No hay datos de pedidos.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Top Repartidores</h5>
+            </div>
+            <div class="card-body">
+                {% if top_repartidores %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Repartidor</th>
+                                <th>Entregas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for repartidor in top_repartidores %}
+                            <tr>
+                                <td>{{ repartidor.nombres }} {{ repartidor.apellidos }}</td>
+                                <td>
+                                    <span class="badge bg-primary">{{ repartidor.total_entregas }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No hay datos de repartidores.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Acciones Rápidas</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2 d-md-flex">
+                    <a href="{% url 'crear_pedido' %}" class="btn btn-primary me-2">
+                        <i class="fas fa-plus"></i> Nuevo Pedido
+                    </a>
+                    <a href="{% url 'asignar_automaticos' %}" class="btn btn-info me-2" 
+                       onclick="return confirm('¿Asignar repartidores automáticamente?')">
+                        <i class="fas fa-robot"></i> Asignar Automático
+                    </a>
+                    <a href="{% url 'lista_pedidos' %}" class="btn btn-secondary me-2">
+                        <i class="fas fa-list"></i> Ver Todos los Pedidos
+                    </a>
+                    <a href="{% url 'reportes_entregas' %}" class="btn btn-success">
+                        <i class="fas fa-chart-bar"></i> Ver Reportes
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

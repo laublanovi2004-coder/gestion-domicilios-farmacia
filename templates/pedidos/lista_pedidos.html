@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestión de Pedidos{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Gestión de Pedidos</h2>
+    <div>
+        <a href="{% url 'asignar_automaticos' %}" class="btn btn-info me-2"
+           onclick="return confirm('¿Asignar repartidores automáticamente a pedidos pendientes?')">
+            <i class="fas fa-robot"></i> Asignar Automático
+        </a>
+        <a href="{% url 'crear_pedido' %}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Nuevo Pedido
+        </a>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Filtrar por estado:</label>
+                <select name="estado" class="form-select">
+                    <option value="">Todos los estados</option>
+                    <option value="pendiente" {% if estado_filtro == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                    <option value="asignado" {% if estado_filtro == 'asignado' %}selected{% endif %}>Asignado</option>
+                    <option value="en_camino" {% if estado_filtro == 'en_camino' %}selected{% endif %}>En Camino</option>
+                    <option value="entregado" {% if estado_filtro == 'entregado' %}selected{% endif %}>Entregado</option>
+                    <option value="cancelado" {% if estado_filtro == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary">Filtrar</button>
+                <a href="{% url 'lista_pedidos' %}" class="btn btn-secondary ms-2">Limpiar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-body">
+        {% if pedidos %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Repartidor</th>
+                        <th>Estado</th>
+                        <th>Prioridad</th>
+                        <th>Fecha Pedido</th>
+                        <th>Zona</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pedido in pedidos %}
+                    <tr>
+                        <td><strong>#{{ pedido.pedido_id }}</strong></td>
+                        <td>{{ pedido.cliente.nombres }} {{ pedido.cliente.apellidos }}</td>
+                        <td>
+                            {% if pedido.repartidor %}
+                                {{ pedido.repartidor.nombres }}
+                                {% if pedido.repartidor.capacidad_entregas <= 0 %}
+                                    <span class="badge bg-warning ms-1" title="Capacidad llena">Lleno</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">Sin asignar</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge
+                                {% if pedido.estado == 'entregado' %}bg-success
+                                {% elif pedido.estado == 'pendiente' %}bg-warning
+                                {% elif pedido.estado == 'cancelado' %}bg-danger
+                                {% else %}bg-info{% endif %}">
+                                {{ pedido.get_estado_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge
+                                {% if pedido.prioridad == 'urgente' %}bg-danger
+                                {% elif pedido.prioridad == 'alta' %}bg-warning
+                                {% else %}bg-secondary{% endif %}">
+                                {{ pedido.get_prioridad_display }}
+                            </span>
+                        </td>
+                        <td>{{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</td>
+                        <td>{{ pedido.zona_entrega }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <!-- Botón para asignar/reasignar repartidor -->
+                                {% if pedido.estado == 'pendiente' and not pedido.repartidor %}
+                                <a href="{% url 'asignar_repartidor' pedido.pedido_id %}"
+                                   class="btn btn-outline-success" title="Asignar repartidor">
+                                    <i class="fas fa-user-plus"></i>
+                                </a>
+                                {% elif pedido.repartidor %}
+                                <a href="{% url 'reasignar_repartidor' pedido.pedido_id %}"
+                                   class="btn btn-outline-warning" title="Reasignar repartidor">
+                                    <i class="fas fa-sync-alt"></i>
+                                </a>
+                                {% endif %}
+                                
+                                <!-- Botón para cambiar estado -->
+                                <a href="{% url 'cambiar_estado_pedido' pedido.pedido_id %}"
+                                   class="btn btn-outline-primary" title="Cambiar estado">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                
+                                <!-- Botón para ver historial -->
+                                <a href="{% url 'historial_pedido' pedido.pedido_id %}"
+                                   class="btn btn-outline-info" title="Ver historial">
+                                    <i class="fas fa-history"></i>
+                                </a>
+                                
+                                <!-- Botón para editar -->
+                                <a href="{% url 'editar_pedido' pedido.pedido_id %}"
+                                   class="btn btn-outline-secondary" title="Editar">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </a>
+                                
+                                <!-- Botón para eliminar -->
+                                <a href="{% url 'eliminar_pedido' pedido.pedido_id %}"
+                                   class="btn btn-outline-danger" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4">
+                            <i class="fas fa-shopping-cart fa-2x text-muted mb-3"></i>
+                            <p class="text-muted">No hay pedidos registrados</p>
+                            <a href="{% url 'crear_pedido' %}" class="btn btn-primary">Crear primer pedido</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No hay pedidos registrados</h5>
+            <p class="text-muted">Comienza creando tu primer pedido.</p>
+            <a href="{% url 'crear_pedido' %}" class="btn btn-primary">Crear Primer Pedido</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Estadísticas rápidas -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h4 class="card-title">{{ pedidos.count }}</h4>
+                <p class="card-text">Total Pedidos</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <h4 class="card-title">{{ pedidos|length|default:0 }}</h4>
+                <p class="card-text">Mostrados</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h4 class="card-title">{{ pedidos|length|default:0 }}</h4>
+                <p class="card-text">En Lista</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h4 class="card-title">{{ pedidos|length|default:0 }}</h4>
+                <p class="card-text">Activos</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

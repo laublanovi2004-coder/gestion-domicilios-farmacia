@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}Crear Reporte de Entrega{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">Crear Reporte de Entrega - Pedido #{{ pedido.pedido_id }}</h4>
+            </div>
+            <div class="card-body">
+                {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="alert alert-info">
+                    <strong>Información del Pedido:</strong><br>
+                    <strong>Cliente:</strong> {{ pedido.cliente.nombres }} {{ pedido.cliente.apellidos }}<br>
+                    <strong>Dirección:</strong> {{ pedido.direccion_entrega }}<br>
+                    <strong>Repartidor:</strong> 
+                    {% if pedido.repartidor %}
+                        {{ pedido.repartidor.nombres }} {{ pedido.repartidor.apellidos }}
+                    {% else %}
+                        <span class="text-warning">No asignado</span>
+                    {% endif %}
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Fecha de Reporte *</label>
+                                <input type="date" name="fecha_reporte" class="form-control" required
+                                    value="{{ pedido.fecha_entrega_real|date:'Y-m-d'|default:'' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Estado de Entrega *</label>
+                                <select name="estado_entrega" class="form-control" required>
+                                    <option value="">Seleccionar estado...</option>
+                                    <option value="exitosa">✅ Exitosa</option>
+                                    <option value="fallida">❌ Fallida</option>
+                                    <option value="reprogramada">🔄 Reprogramada</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Hora de Salida</label>
+                                <input type="time" name="hora_salida" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Hora de Llegada</label>
+                                <input type="time" name="hora_llegada" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Hora de Entrega</label>
+                                <input type="time" name="hora_entrega" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Tiempo de Tránsito (minutos)</label>
+                                <input type="number" name="tiempo_transito" class="form-control" min="0">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Tiempo Total (minutos)</label>
+                                <input type="number" name="tiempo_total" class="form-control" min="0"
+                                    value="{{ pedido.tiempo_real_minutos|default:'' }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Calificación (1-5)</label>
+                                <select name="calificacion" class="form-control">
+                                    <option value="">Sin calificar</option>
+                                    <option value="1">⭐ (1) Muy Malo</option>
+                                    <option value="2">⭐⭐ (2) Malo</option>
+                                    <option value="3">⭐⭐⭐ (3) Regular</option>
+                                    <option value="4">⭐⭐⭐⭐ (4) Bueno</option>
+                                    <option value="5">⭐⭐⭐⭐⭐ (5) Excelente</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Comentarios del Cliente</label>
+                        <textarea name="comentarios_cliente" class="form-control" rows="3"
+                            placeholder="Comentarios o sugerencias del cliente..."></textarea>
+                    </div>
+
+                    <div class="mb-3" id="motivo-falla-field" style="display: none;">
+                        <label class="form-label">Motivo de la Falla *</label>
+                        <textarea name="motivo_falla" class="form-control" rows="3"
+                            placeholder="Describa el motivo por el cual la entrega falló..."></textarea>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check"></i> Crear Reporte
+                        </button>
+                        <a href="{% url 'reportes_entregas' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Mostrar campo de motivo de falla solo cuando se seleccione "fallida"
+    document.querySelector('select[name="estado_entrega"]').addEventListener('change', function() {
+        const motivoFallaField = document.getElementById('motivo-falla-field');
+        if (this.value === 'fallida') {
+            motivoFallaField.style.display = 'block';
+        } else {
+            motivoFallaField.style.display = 'none';
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}Inicio - Sistema de Domicilios{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="card stat-card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ total_clientes }}</h4>
+                        <p class="card-text">Clientes</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card stat-card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ total_repartidores }}</h4>
+                        <p class="card-text">Repartidores Activos</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-motorcycle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card stat-card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ total_pedidos }}</h4>
+                        <p class="card-text">Total Pedidos</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-shopping-cart fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card stat-card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ pedidos_pendientes }}</h4>
+                        <p class="card-text">Pedidos Pendientes</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-clock fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Pedidos Recientes</h5>
+            </div>
+            <div class="card-body">
+                {% if pedidos_recientes %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pedido in pedidos_recientes %}
+                            <tr>
+                                <td>#{{ pedido.pedido_id }}</td>
+                                <td>{{ pedido.cliente.nombres }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if pedido.estado == 'entregado' %}bg-success
+                                        {% elif pedido.estado == 'pendiente' %}bg-warning
+                                        {% elif pedido.estado == 'cancelado' %}bg-danger
+                                        {% else %}bg-info{% endif %}">
+                                        {{ pedido.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td>{{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    <a href="{% url 'cambiar_estado_pedido' pedido.pedido_id %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No hay pedidos recientes.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Acciones Rápidas</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'crear_cliente' %}" class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i> Nuevo Cliente
+                    </a>
+                    <a href="{% url 'crear_repartidor' %}" class="btn btn-success">
+                        <i class="fas fa-motorcycle"></i> Nuevo Repartidor
+                    </a>
+                    <a href="{% url 'crear_pedido' %}" class="btn btn-info">
+                        <i class="fas fa-plus"></i> Nuevo Pedido
+                    </a>
+                    <a href="{% url 'lista_pedidos' %}" class="btn btn-warning">
+                        <i class="fas fa-list"></i> Ver Pedidos
+                    </a>
+                    <a href="{% url 'asignar_automaticos' %}" class="btn btn-secondary" onclick="return confirm('¿Asignar repartidores automáticamente?')">
+                        <i class="fas fa-robot"></i> Asignar Automático
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Sistema Listo</h5>
+            </div>
+            <div class="card-body">
+                <p>Tu sistema de gestión de domicilios está funcionando correctamente.</p>
+                <p><strong>Resumen actual:</strong></p>
+                <ul class="small">
+                    <li><strong>{{ total_clientes }}</strong> clientes registrados</li>
+                    <li><strong>{{ total_repartidores }}</strong> repartidores activos</li>
+                    <li><strong>{{ total_pedidos }}</strong> pedidos en total</li>
+                    <li><strong>{{ pedidos_pendientes }}</strong> pedidos pendientes</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

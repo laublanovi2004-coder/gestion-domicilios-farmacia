@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Reporte #{{ reporte.reporte_id }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">Editar Reporte de Entrega #{{ reporte.reporte_id }}</h4>
+            </div>
+            <div class="card-body">
+                {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="alert alert-info">
+                    <strong>Información del Pedido:</strong><br>
+                    <strong>Pedido ID:</strong> #{{ reporte.pedido.pedido_id }}<br>
+                    <strong>Cliente:</strong> {{ reporte.pedido.cliente.nombres }} {{ reporte.pedido.cliente.apellidos }}<br>
+                    <strong>Repartidor:</strong> 
+                    {% if reporte.repartidor %}
+                        {{ reporte.repartidor.nombres }} {{ reporte.repartidor.apellidos }}
+                    {% else %}
+                        No asignado
+                    {% endif %}<br>
+                    <strong>Dirección:</strong> {{ reporte.pedido.direccion_entrega }}
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Fecha de Reporte *</label>
+                                <input type="date" name="fecha_reporte" class="form-control" required
+                                    value="{{ reporte.fecha_reporte|date:'Y-m-d' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Estado de Entrega *</label>
+                                <select name="estado_entrega" class="form-control" required id="estado_entrega_select">
+                                    <option value="exitosa" {% if reporte.estado_entrega == 'exitosa' %}selected{% endif %}>✅ Exitosa</option>
+                                    <option value="fallida" {% if reporte.estado_entrega == 'fallida' %}selected{% endif %}>❌ Fallida</option>
+                                    <option value="reprogramada" {% if reporte.estado_entrega == 'reprogramada' %}selected{% endif %}>🔄 Reprogramada</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5 class="mt-4 mb-3">Horarios</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Hora de Salida</label>
+                                <input type="time" name="hora_salida" class="form-control"
+                                    value="{{ reporte.hora_salida|default:'' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Hora de Llegada</label>
+                                <input type="time" name="hora_llegada" class="form-control"
+                                    value="{{ reporte.hora_llegada|default:'' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Hora de Entrega</label>
+                                <input type="time" name="hora_entrega" class="form-control"
+                                    value="{{ reporte.hora_entrega|default:'' }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5 class="mt-4 mb-3">Tiempos (minutos)</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Tiempo de Tránsito</label>
+                                <input type="number" name="tiempo_transito" class="form-control" min="0"
+                                    value="{{ reporte.tiempo_transito|default:'' }}">
+                                <div class="form-text">Minutos desde salida hasta llegada</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Tiempo Total</label>
+                                <input type="number" name="tiempo_total" class="form-control" min="0"
+                                    value="{{ reporte.tiempo_total|default:'' }}">
+                                <div class="form-text">Minutos desde salida hasta entrega final</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Calificación</label>
+                                <select name="calificacion" class="form-control">
+                                    <option value="">Sin calificar</option>
+                                    <option value="1" {% if reporte.calificacion == 1 %}selected{% endif %}>⭐ (1) Muy Malo</option>
+                                    <option value="2" {% if reporte.calificacion == 2 %}selected{% endif %}>⭐⭐ (2) Malo</option>
+                                    <option value="3" {% if reporte.calificacion == 3 %}selected{% endif %}>⭐⭐⭐ (3) Regular</option>
+                                    <option value="4" {% if reporte.calificacion == 4 %}selected{% endif %}>⭐⭐⭐⭐ (4) Bueno</option>
+                                    <option value="5" {% if reporte.calificacion == 5 %}selected{% endif %}>⭐⭐⭐⭐⭐ (5) Excelente</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Comentarios del Cliente</label>
+                        <textarea name="comentarios_cliente" class="form-control" rows="3">{{ reporte.comentarios_cliente|default:'' }}</textarea>
+                    </div>
+
+                    <!-- CORRECCIÓN: Campo de motivo de falla con display condicional -->
+                    <div class="mb-3" id="motivo_falla_field" 
+                         {% if reporte.estado_entrega != 'fallida' %}style="display: none;"{% endif %}>
+                        <label class="form-label">Motivo de la Falla</label>
+                        <textarea name="motivo_falla" class="form-control" rows="3">{{ reporte.motivo_falla|default:'' }}</textarea>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Guardar Cambios
+                        </button>
+                        <a href="{% url 'reportes_entregas' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        {% if reporte.reporte_id %}
+                        <a href="{% url 'detalle_reporte' reporte.reporte_id %}" class="btn btn-info">
+                            <i class="fas fa-eye"></i> Ver Detalles
+                        </a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Mostrar/ocultar campo de motivo de falla
+    document.addEventListener('DOMContentLoaded', function() {
+        const estadoSelect = document.getElementById('estado_entrega_select');
+        const motivoFallaField = document.getElementById('motivo_falla_field');
+        
+        function toggleMotivoFalla() {
+            if (estadoSelect.value === 'fallida') {
+                motivoFallaField.style.display = 'block';
+            } else {
+                motivoFallaField.style.display = 'none';
+            }
+        }
+        
+        // Configurar evento
+        estadoSelect.addEventListener('change', toggleMotivoFalla);
+        
+        // Ejecutar al cargar la página
+        toggleMotivoFalla();
+    });
+</script>
+{% endblock %}

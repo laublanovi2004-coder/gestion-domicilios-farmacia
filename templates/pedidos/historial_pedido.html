@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Historial del Pedido #{{ pedido.pedido_id }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Historial del Pedido #{{ pedido.pedido_id }}</h2>
+    <a href="{% url 'lista_pedidos' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Volver a Pedidos
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Información del Pedido</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Cliente:</strong> {{ pedido.cliente.nombres }} {{ pedido.cliente.apellidos }}</p>
+                <p><strong>Estado actual:</strong> 
+                    <span class="badge 
+                        {% if pedido.estado == 'entregado' %}bg-success
+                        {% elif pedido.estado == 'pendiente' %}bg-warning
+                        {% elif pedido.estado == 'cancelado' %}bg-danger
+                        {% else %}bg-info{% endif %}">
+                        {{ pedido.get_estado_display }}
+                    </span>
+                </p>
+                <p><strong>Fecha pedido:</strong> {{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</p>
+                <p><strong>Dirección:</strong> {{ pedido.direccion_entrega }}</p>
+                {% if pedido.repartidor %}
+                <p><strong>Repartidor:</strong> {{ pedido.repartidor.nombres }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Historial de Estados</h5>
+            </div>
+            <div class="card-body">
+                {% if historial %}
+                <div class="timeline">
+                    {% for registro in historial %}
+                    <div class="timeline-item {% if forloop.first %}current{% endif %}">
+                        <div class="timeline-marker 
+                            {% if registro.estado_nuevo == 'entregado' %}bg-success
+                            {% elif registro.estado_nuevo == 'pendiente' %}bg-warning
+                            {% elif registro.estado_nuevo == 'cancelado' %}bg-danger
+                            {% else %}bg-info{% endif %}">
+                        </div>
+                        <div class="timeline-content">
+                            <h6 class="mb-1">
+                                {% if registro.estado_nuevo == 'pendiente' %}🟡
+                                {% elif registro.estado_nuevo == 'asignado' %}🔵
+                                {% elif registro.estado_nuevo == 'en_camino' %}🚚
+                                {% elif registro.estado_nuevo == 'entregado' %}✅
+                                {% elif registro.estado_nuevo == 'cancelado' %}❌
+                                {% endif %}
+                                {{ registro.get_estado_nuevo_display }}
+                            </h6>
+                            <p class="text-muted mb-1">
+                                <small>
+                                    {{ registro.fecha_cambio|date:"d/m/Y H:i" }}
+                                    por <strong>{{ registro.usuario }}</strong>
+                                </small>
+                            </p>
+                            {% if registro.estado_anterior %}
+                            <p class="mb-0">
+                                <small>Estado anterior: {{ registro.get_estado_anterior_display }}</small>
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-history fa-2x text-muted mb-3"></i>
+                    <p class="text-muted">No hay historial registrado para este pedido.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+.timeline-marker {
+    position: absolute;
+    left: -30px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+.timeline-content {
+    padding: 10px;
+    border-left: 2px solid #e9ecef;
+    margin-left: 10px;
+}
+.timeline-item.current .timeline-content {
+    background-color: #f8f9fa;
+    border-radius: 5px;
+}
+</style>
+{% endblock %}

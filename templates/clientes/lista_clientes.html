@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestión de Clientes{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Gestión de Clientes</h2>
+    <a href="{% url 'crear_cliente' %}" class="btn btn-success">
+        <i class="fas fa-plus"></i> Nuevo Cliente
+    </a>
+</div>
+
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-body">
+        {% if clientes %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Cédula</th>
+                        <th>Nombres</th>
+                        <th>Teléfono</th>
+                        <th>Email</th>
+                        <th>Zona</th>
+                        <th>Discapacidad</th>
+                        <th>Fecha Registro</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cliente in clientes %}
+                    <tr>
+                        <td>{{ cliente.cedula }}</td>
+                        <td>{{ cliente.nombres }} {{ cliente.apellidos }}</td>
+                        <td>{{ cliente.telefono }}</td>
+                        <td>{{ cliente.email|default:"-" }}</td>
+                        <td>{{ cliente.zona }}</td>
+                        <td>
+                            {% if cliente.discapacidad %}
+                                <span class="badge bg-info">Sí</span>
+                            {% else %}
+                                <span class="badge bg-secondary">No</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ cliente.fecha_registro|date:"d/m/Y" }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'editar_cliente' cliente.cliente_id %}" 
+                                   class="btn btn-outline-primary" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'eliminar_cliente' cliente.cliente_id %}" 
+                                   class="btn btn-outline-danger" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No hay clientes registrados</h5>
+            <p class="text-muted">Comienza agregando tu primer cliente.</p>
+            <a href="{% url 'crear_cliente' %}" class="btn btn-primary">Agregar Primer Cliente</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

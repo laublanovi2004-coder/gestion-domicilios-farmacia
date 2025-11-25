@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}Cambiar Estado de Pedido{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">Cambiar Estado del Pedido #{{ pedido.pedido_id }}</h4>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p><strong>Cliente:</strong> {{ pedido.cliente.nombres }} {{ pedido.cliente.apellidos }}</p>
+                        <p><strong>Teléfono:</strong> {{ pedido.cliente.telefono }}</p>
+                        <p><strong>Dirección:</strong> {{ pedido.direccion_entrega }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Repartidor:</strong> 
+                            {% if pedido.repartidor %}
+                                {{ pedido.repartidor.nombres }} {{ pedido.repartidor.apellidos }}
+                            {% else %}
+                                <span class="text-warning">Sin asignar</span>
+                            {% endif %}
+                        </p>
+                        <p><strong>Zona:</strong> {{ pedido.zona_entrega }}</p>
+                        <p><strong>Prioridad:</strong> 
+                            <span class="badge 
+                                {% if pedido.prioridad == 'urgente' %}bg-danger
+                                {% elif pedido.prioridad == 'alta' %}bg-warning
+                                {% else %}bg-secondary{% endif %}">
+                                {{ pedido.get_prioridad_display }}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <strong>Estado actual:</strong> 
+                    <span class="badge 
+                        {% if pedido.estado == 'entregado' %}bg-success
+                        {% elif pedido.estado == 'pendiente' %}bg-warning
+                        {% elif pedido.estado == 'cancelado' %}bg-danger
+                        {% else %}bg-info{% endif %}">
+                        {{ pedido.get_estado_display }}
+                    </span>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Seleccionar Nuevo Estado</strong></label>
+                        <select name="estado" class="form-control" required id="estado_select">
+                            <option value="">Seleccione un estado...</option>
+                            <option value="pendiente" {% if pedido.estado == 'pendiente' %}selected{% endif %}>🟡 Pendiente</option>
+                            <option value="asignado" {% if pedido.estado == 'asignado' %}selected{% endif %}>🔵 Asignado</option>
+                            <option value="en_camino" {% if pedido.estado == 'en_camino' %}selected{% endif %}>🚚 En Camino</option>
+                            <option value="entregado" {% if pedido.estado == 'entregado' %}selected{% endif %}>✅ Entregado</option>
+                            <option value="cancelado" {% if pedido.estado == 'cancelado' %}selected{% endif %}>❌ Cancelado</option>
+                        </select>
+                    </div>
+
+                    <!-- Campo para asignar repartidor si el estado es "asignado" -->
+                    <div id="repartidor-field" class="mb-3" style="display: none;">
+                        <label class="form-label">Asignar Repartidor</label>
+                        <select name="repartidor_id" class="form-control">
+                            <option value="">Seleccionar repartidor...</option>
+                            {% for repartidor in repartidores_disponibles %}
+                                <option value="{{ repartidor.repartidor_id }}" 
+                                    {% if pedido.repartidor and pedido.repartidor.repartidor_id == repartidor.repartidor_id %}selected{% endif %}>
+                                    {{ repartidor.nombres }} {{ repartidor.apellidos }} - {{ repartidor.vehiculo }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Actualizar Estado</button>
+                        <a href="{% url 'lista_pedidos' %}" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Mostrar campo de repartidor solo cuando se seleccione "asignado"
+document.getElementById('estado_select').addEventListener('change', function() {
+    const repartidorField = document.getElementById('repartidor-field');
+    if (this.value === 'asignado') {
+        repartidorField.style.display = 'block';
+    } else {
+        repartidorField.style.display = 'none';
+    }
+});
+
+// Ejecutar al cargar la página para estado actual
+document.addEventListener('DOMContentLoaded', function() {
+    const estadoSelect = document.getElementById('estado_select');
+    const repartidorField = document.getElementById('repartidor-field');
+    if (estadoSelect.value === 'asignado') {
+        repartidorField.style.display = 'block';
+    }
+});
+</script>
+{% endblock %}
